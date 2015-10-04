@@ -1,3 +1,6 @@
+#ifndef DUMMYVISUALIZER_H
+#define DUMMYVISUALIZER_H
+
 #include "IVisualizer.hpp"
 
 class DummyVisualizer : public IVisualizer {
@@ -9,3 +12,5 @@ public:
     virtual void updateColor(int lineId, Color newColor) {}
     virtual void clear() {}
 };
+
+#endif

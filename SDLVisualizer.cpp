@@ -28,6 +28,11 @@ int SDLVisualizer::drawPoint(Point2D point, Color color) {
     return segments.size() - 1;
 }
 
+void SDLVisualizer::replacePoint(int id, Point2D point) {
+    get<2>(segments[id]) = point;
+    dirty = true;
+}
+
 void SDLVisualizer::updateColor(int lineId, Color newColor) {
     get<0>(segments[lineId]) = newColor;
     dirty = true;
@@ -46,22 +51,30 @@ void SDLVisualizer::runLoop() {
         switch(evt.type)
         {
         case SDL_KEYDOWN:
-            goto out;
+            //goto out;
             break;
         case SDL_MOUSEMOTION:
             if(dragging) {
                 offsetX -= evt.motion.xrel / zoomFactor;
                 offsetY -= evt.motion.yrel / zoomFactor;
+                dirty = true;
             }
             break;
         case SDL_MOUSEBUTTONDOWN:
             dragging = true;
+            mouseDownTicks = SDL_GetTicks();
             break;
         case SDL_MOUSEBUTTONUP:
             dragging = false;
+            if(SDL_GetTicks() - mouseDownTicks < 150 && clickCallback) {
+                double xPos = (evt.button.x - windowSizeX / 2) / zoomFactor + offsetX;
+                double yPos = (evt.button.y - windowSizeY / 2) / zoomFactor + offsetY;
+                clickCallback(xPos, yPos);
+            }
             break;
         case SDL_MOUSEWHEEL:
             zoomFactor *= pow(1.1f, evt.wheel.y);
+            dirty = true;
             break;
         case SDL_KEYUP:
             break;
@@ -89,7 +102,10 @@ void SDLVisualizer::runLoop() {
                 SDL_SetRenderDrawColor(renderer, col.r, col.g, col.b, 255);
                 if(get<1>(seg)) {
                     auto pt = get<2>(seg);
-                    SDL_RenderDrawPoint(renderer, (pt.x - offsetX) * zoomFactor + windowSizeX/2, (pt.y - offsetY) * zoomFactor + windowSizeY/2);
+                    auto cx = (pt.x - offsetX) * zoomFactor + windowSizeX/2;
+                    auto cy = (pt.y - offsetY) * zoomFactor + windowSizeY/2;
+                    SDL_RenderDrawLine(renderer, cx - 5, cy - 5, cx + 5, cy + 5);
+                    SDL_RenderDrawLine(renderer, cx - 5, cy + 5, cx + 5, cy - 5);
                 } else {
                     auto p1 = get<2>(seg);
                     auto p2 = get<3>(seg);
@@ -98,6 +114,7 @@ void SDLVisualizer::runLoop() {
                 }
             }
             SDL_RenderPresent(renderer);
+            dirty = false;
         }
     }
     out:;

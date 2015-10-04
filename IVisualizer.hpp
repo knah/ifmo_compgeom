@@ -1,3 +1,6 @@
+#ifndef IVISUALIZER_H
+#define IVISUALIZER_H
+
 #include <array>
 #include <stdexcept>
 #include "Point2D.hpp"
@@ -23,6 +26,9 @@ public:
     virtual ~IVisualizer() {}
     virtual int drawLine(Point2D start, Point2D end, Color color) = 0;
     virtual int drawPoint(Point2D point, Color color) = 0;
+    virtual void replacePoint(int id, Point2D point) = 0;
     virtual void updateColor(int lineId, Color newColor) = 0;
     virtual void clear() = 0;
 };
+
+#endif
